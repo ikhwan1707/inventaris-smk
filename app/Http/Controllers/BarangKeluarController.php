@@ -16,12 +16,11 @@ class BarangKeluarController extends Controller
         if ($request->filled('tanggal_awal') && $request->filled('tanggal_akhir')) {
             $query->whereBetween('tanggal_keluar', [$request->tanggal_awal, $request->tanggal_akhir]);
         }
-
         if ($request->filled('item_id')) {
             $query->where('item_id', $request->item_id);
         }
 
-        $data = $query->paginate(20)->appends($request->query());
+        $data   = $query->paginate(20)->appends($request->query());
         $barang = Item::orderBy('nama_barang')->get();
 
         return view('barang-keluar.index', compact('data', 'barang'));

@@ -7,9 +7,18 @@ use Illuminate\Http\Request;
 
 class RuanganController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $data = Location::orderBy('nama_ruangan')->get();
+        $query = Location::query();
+
+        if ($request->filled('keyword')) {
+            $query->where('nama_ruangan', 'like', '%' . $request->keyword . '%');
+        }
+
+        $data = $query->orderBy('nama_ruangan')
+            ->paginate(20)
+            ->appends($request->query());
+
         return view('ruangan.index', compact('data'));
     }
 

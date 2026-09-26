@@ -17,11 +17,9 @@ class PeminjamanController extends Controller
         if ($request->filled('tanggal_awal') && $request->filled('tanggal_akhir')) {
             $query->whereBetween('tanggal_pinjam', [$request->tanggal_awal, $request->tanggal_akhir]);
         }
-
         if ($request->filled('status')) {
             $query->where('status', $request->status);
         }
-
         if ($request->filled('item_id')) {
             $query->where('item_id', $request->item_id);
         }

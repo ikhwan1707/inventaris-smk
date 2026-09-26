@@ -80,6 +80,6 @@
         </tbody>
     </table>
 
-    {{ $data->links() }}
+    @include('partials.pagination-info', ['data' => $data])
 </div>
 @endsection

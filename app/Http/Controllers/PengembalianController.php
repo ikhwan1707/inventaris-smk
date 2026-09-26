@@ -11,18 +11,23 @@ use Illuminate\Support\Facades\DB;
 
 class PengembalianController extends Controller
 {
-    public function index(Request $request)
+   public function index(Request $request)
     {
         $query = LoanReturn::with(['loan.item', 'condition'])
-            ->orderBy('tanggal_kembali', 'desc');
+                    ->orderBy('tanggal_kembali', 'desc');
 
+        $kondisi = Condition::orderBy('nama_kondisi')->get();
+                    
         if ($request->filled('tanggal_awal') && $request->filled('tanggal_akhir')) {
             $query->whereBetween('tanggal_kembali', [$request->tanggal_awal, $request->tanggal_akhir]);
+        }
+        if ($request->filled('condition_id')) {
+            $query->where('condition_id', $request->condition_id);
         }
 
         $data = $query->paginate(20)->appends($request->query());
 
-        return view('pengembalian.index', compact('data'));
+        return view('pengembalian.index', compact('data','kondisi'));
     }
 
     public function create(Request $request)

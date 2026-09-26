@@ -21,7 +21,8 @@ Auth::routes();
 
 Route::middleware('auth')->group(function () {
     Route::get('/dashboard', 'DashboardController@index')->name('dashboard');
-
+    Route::get('/home', 'DashboardController@index');
+    
     Route::resource('kategori', 'KategoriController');
     Route::resource('ruangan', 'RuanganController');
     Route::resource('kondisi', 'KondisiController');
@@ -31,10 +32,24 @@ Route::middleware('auth')->group(function () {
     Route::resource('peminjaman', 'PeminjamanController');
     Route::resource('pengembalian', 'PengembalianController');
 
-    Route::get('/laporan/inventaris', 'LaporanController@inventaris')->name('laporan.inventaris');
-    Route::get('/laporan/barang-masuk', 'LaporanController@barangMasuk')->name('laporan.barang-masuk');
-    Route::get('/laporan/barang-keluar', 'LaporanController@barangKeluar')->name('laporan.barang-keluar');
-    Route::get('/laporan/peminjaman', 'LaporanController@peminjaman')->name('laporan.peminjaman');
+    Route::prefix('laporan')->name('laporan.')->group(function () {
+
+        // Laporan Inventaris
+        Route::get('/inventaris', 'LaporanController@inventaris')->name('inventaris');
+        Route::get('/inventaris/pdf', 'LaporanController@inventarisPdf')->name('inventaris.pdf');
+
+        // Laporan Barang Masuk
+        Route::get('/barang-masuk', 'LaporanController@barangMasuk')->name('barang-masuk');
+        Route::get('/barang-masuk/pdf', 'LaporanController@barangMasukPdf')->name('barang-masuk.pdf');
+
+        // Laporan Barang Keluar
+        Route::get('/barang-keluar', 'LaporanController@barangKeluar')->name('barang-keluar');
+        Route::get('/barang-keluar/pdf', 'LaporanController@barangKeluarPdf')->name('barang-keluar.pdf');
+
+        // Laporan Peminjaman
+        Route::get('/peminjaman', 'LaporanController@peminjaman')->name('peminjaman');
+        Route::get('/peminjaman/pdf', 'LaporanController@peminjamanPdf')->name('peminjaman.pdf');
+    });
 
     Route::resource('user', 'UserController');
 });

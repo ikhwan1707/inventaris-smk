@@ -1,91 +1,127 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="container">
-    <h3>Tambah Barang</h3>
+<div class="container-fluid">
 
-    @if($errors->any())
-    <div class="alert alert-danger">
-        <ul class="mb-0">
-            @foreach($errors->all() as $e) <li>{{ $e }}</li> @endforeach
-        </ul>
+    @include('partials.breadcrumb', ['items' => [
+    'Master Data' => '#',
+    'Barang' => route('barang.index'),
+    'Tambah' => '',
+    ]])
+
+    @include('partials.alert')
+
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <i class="fas fa-plus"></i> Tambah Barang
+                </div>
+                <div class="card-body">
+                    <form action="{{ route('barang.store') }}" method="POST">
+                        @csrf
+
+                        <div class="form-row">
+                            <div class="form-group col-md-4">
+                                <label>Kode Barang <span class="text-danger">*</span></label>
+                                <input type="text" name="kode_barang"
+                                    class="form-control @error('kode_barang') is-invalid @enderror"
+                                    value="{{ old('kode_barang') }}" placeholder="BRG-001" required autofocus>
+                                @error('kode_barang')<span class="invalid-feedback">{{ $message }}</span>@enderror
+                            </div>
+                            <div class="form-group col-md-8">
+                                <label>Nama Barang <span class="text-danger">*</span></label>
+                                <input type="text" name="nama_barang"
+                                    class="form-control @error('nama_barang') is-invalid @enderror"
+                                    value="{{ old('nama_barang') }}" required>
+                                @error('nama_barang')<span class="invalid-feedback">{{ $message }}</span>@enderror
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group col-md-4">
+                                <label>Kategori <span class="text-danger">*</span></label>
+                                <select name="category_id"
+                                    class="form-control @error('category_id') is-invalid @enderror" required>
+                                    <option value="">-- Pilih --</option>
+                                    @foreach(\App\Category::orderBy('nama_kategori')->get() as $k)
+                                    <option value="{{ $k->id }}" {{ old('category_id')==$k->id ? 'selected' : '' }}>
+                                        {{ $k->nama_kategori }}
+                                    </option>
+                                    @endforeach
+                                </select>
+                                @error('category_id')<span class="invalid-feedback">{{ $message }}</span>@enderror
+                            </div>
+                            <div class="form-group col-md-4">
+                                <label>Ruangan/Lokasi <span class="text-danger">*</span></label>
+                                <select name="location_id"
+                                    class="form-control @error('location_id') is-invalid @enderror" required>
+                                    <option value="">-- Pilih --</option>
+                                    @foreach(\App\Location::orderBy('nama_ruangan')->get() as $r)
+                                    <option value="{{ $r->id }}" {{ old('location_id')==$r->id ? 'selected' : '' }}>
+                                        {{ $r->nama_ruangan }}
+                                    </option>
+                                    @endforeach
+                                </select>
+                                @error('location_id')<span class="invalid-feedback">{{ $message }}</span>@enderror
+                            </div>
+                            <div class="form-group col-md-4">
+                                <label>Kondisi <span class="text-danger">*</span></label>
+                                <select name="condition_id"
+                                    class="form-control @error('condition_id') is-invalid @enderror" required>
+                                    <option value="">-- Pilih --</option>
+                                    @foreach(\App\Condition::orderBy('nama_kondisi')->get() as $c)
+                                    <option value="{{ $c->id }}" {{ old('condition_id')==$c->id ? 'selected' : '' }}>
+                                        {{ $c->nama_kondisi }}
+                                    </option>
+                                    @endforeach
+                                </select>
+                                @error('condition_id')<span class="invalid-feedback">{{ $message }}</span>@enderror
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group col-md-4">
+                                <label>Jumlah <span class="text-danger">*</span></label>
+                                <input type="number" name="jumlah"
+                                    class="form-control @error('jumlah') is-invalid @enderror"
+                                    value="{{ old('jumlah', 0) }}" min="0" required>
+                                @error('jumlah')<span class="invalid-feedback">{{ $message }}</span>@enderror
+                            </div>
+                            <div class="form-group col-md-4">
+                                <label>Satuan <span class="text-danger">*</span></label>
+                                <input type="text" name="satuan"
+                                    class="form-control @error('satuan') is-invalid @enderror"
+                                    value="{{ old('satuan') }}" placeholder="Unit / Buah / Set" required>
+                                @error('satuan')<span class="invalid-feedback">{{ $message }}</span>@enderror
+                            </div>
+                            <div class="form-group col-md-4">
+                                <label>Tahun Pengadaan</label>
+                                <input type="number" name="tahun_pengadaan"
+                                    class="form-control @error('tahun_pengadaan') is-invalid @enderror"
+                                    value="{{ old('tahun_pengadaan') }}" min="1900" max="{{ date('Y') }}">
+                                @error('tahun_pengadaan')<span class="invalid-feedback">{{ $message }}</span>@enderror
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Keterangan</label>
+                            <textarea name="keterangan" class="form-control" rows="3">{{ old('keterangan') }}</textarea>
+                        </div>
+
+                        <div class="d-flex justify-content-between">
+                            <a href="{{ route('barang.index') }}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i> Kembali
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Simpan
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
     </div>
-    @endif
 
-    <form action="{{ route('barang.store') }}" method="POST">
-        @csrf
-
-        <div class="form-group">
-            <label>Kode Barang</label>
-            <input type="text" name="kode_barang" class="form-control" value="{{ old('kode_barang') }}"
-                placeholder="Contoh: BRG-001">
-        </div>
-
-        <div class="form-group">
-            <label>Nama Barang</label>
-            <input type="text" name="nama_barang" class="form-control" value="{{ old('nama_barang') }}">
-        </div>
-
-        <div class="form-group">
-            <label>Kategori</label>
-            <select name="category_id" class="form-control">
-                <option value="">-- Pilih Kategori --</option>
-                @foreach($kategori as $k)
-                <option value="{{ $k->id }}" {{ old('category_id')==$k->id ? 'selected' : '' }}>
-                    {{ $k->nama_kategori }}
-                </option>
-                @endforeach
-            </select>
-        </div>
-
-        <div class="form-group">
-            <label>Ruangan / Lokasi</label>
-            <select name="location_id" class="form-control">
-                <option value="">-- Pilih Ruangan --</option>
-                @foreach($ruangan as $r)
-                <option value="{{ $r->id }}" {{ old('location_id')==$r->id ? 'selected' : '' }}>
-                    {{ $r->nama_ruangan }}
-                </option>
-                @endforeach
-            </select>
-        </div>
-
-        <div class="form-group">
-            <label>Kondisi</label>
-            <select name="condition_id" class="form-control">
-                <option value="">-- Pilih Kondisi --</option>
-                @foreach($kondisi as $c)
-                <option value="{{ $c->id }}" {{ old('condition_id')==$c->id ? 'selected' : '' }}>
-                    {{ $c->nama_kondisi }}
-                </option>
-                @endforeach
-            </select>
-        </div>
-
-        <div class="form-group">
-            <label>Jumlah</label>
-            <input type="number" name="jumlah" class="form-control" value="{{ old('jumlah', 0) }}" min="0">
-        </div>
-
-        <div class="form-group">
-            <label>Satuan</label>
-            <input type="text" name="satuan" class="form-control" value="{{ old('satuan') }}"
-                placeholder="Contoh: Unit, Buah, Set">
-        </div>
-
-        <div class="form-group">
-            <label>Tahun Pengadaan</label>
-            <input type="number" name="tahun_pengadaan" class="form-control" value="{{ old('tahun_pengadaan') }}"
-                min="1900" max="{{ date('Y') }}">
-        </div>
-
-        <div class="form-group">
-            <label>Keterangan</label>
-            <textarea name="keterangan" class="form-control">{{ old('keterangan') }}</textarea>
-        </div>
-
-        <button class="btn btn-primary">Simpan</button>
-        <a href="{{ route('barang.index') }}" class="btn btn-secondary">Kembali</a>
-    </form>
 </div>
 @endsection

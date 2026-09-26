@@ -10,11 +10,29 @@ use Illuminate\Http\Request;
 
 class BarangController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $data = Item::with(['category', 'location', 'condition'])
-            ->orderBy('nama_barang')
-            ->get();
+        $query = Item::with(['category', 'location', 'condition']);
+
+        if ($request->filled('keyword')) {
+            $query->where(function ($q) use ($request) {
+                $q->where('kode_barang', 'like', '%' . $request->keyword . '%')
+                    ->orWhere('nama_barang', 'like', '%' . $request->keyword . '%');
+            });
+        }
+        if ($request->filled('category_id')) {
+            $query->where('category_id', $request->category_id);
+        }
+        if ($request->filled('location_id')) {
+            $query->where('location_id', $request->location_id);
+        }
+        if ($request->filled('condition_id')) {
+            $query->where('condition_id', $request->condition_id);
+        }
+
+        $data = $query->orderBy('nama_barang')
+            ->paginate(20)
+            ->appends($request->query());
 
         return view('barang.index', compact('data'));
     }

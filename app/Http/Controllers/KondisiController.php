@@ -7,9 +7,18 @@ use Illuminate\Http\Request;
 
 class KondisiController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $data = Condition::orderBy('nama_kondisi')->get();
+        $query = Condition::query();
+
+        if ($request->filled('keyword')) {
+            $query->where('nama_kondisi', 'like', '%' . $request->keyword . '%');
+        }
+
+        $data = $query->orderBy('nama_kondisi')
+            ->paginate(20)
+            ->appends($request->query());
+
         return view('kondisi.index', compact('data'));
     }
 
