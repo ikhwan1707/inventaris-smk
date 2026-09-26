@@ -2,10 +2,30 @@
 
 namespace App;
 
+use App\Category;
+use App\Condition;
+use App\ItemIn;
+use App\ItemOut;
+use App\Loan;
+use App\Location;
 use Illuminate\Database\Eloquent\Model;
 
 class Item extends Model
 {
+    protected $table = 'items';
+
+    protected $fillable = [
+        'kode_barang',
+        'nama_barang',
+        'category_id',
+        'location_id',
+        'condition_id',
+        'jumlah',
+        'satuan',
+        'tahun_pengadaan',
+        'keterangan',
+    ];
+    
     public function category()
     {
         return $this->belongsTo(Category::class);
