@@ -35,4 +35,6 @@ Route::middleware('auth')->group(function () {
     Route::get('/laporan/barang-masuk', 'LaporanController@barangMasuk')->name('laporan.barang-masuk');
     Route::get('/laporan/barang-keluar', 'LaporanController@barangKeluar')->name('laporan.barang-keluar');
     Route::get('/laporan/peminjaman', 'LaporanController@peminjaman')->name('laporan.peminjaman');
+
+    Route::resource('user', 'UserController');
 });
