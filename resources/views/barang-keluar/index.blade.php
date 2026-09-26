@@ -1,28 +1,37 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="container">
-    <h3>Transaksi Barang Keluar</h3>
+<div class="container-fluid">
 
-    @if(session('success'))
-    <div class="alert alert-success">{{ session('success') }}</div>
-    @endif
-    @if(session('error'))
-    <div class="alert alert-danger">{{ session('error') }}</div>
-    @endif
+    @include('partials.breadcrumb', ['items' => [
+    'Transaksi' => '#',
+    'Barang Keluar' => route('barang-keluar.index'),
+    ]])
 
+    @include('partials.alert')
+
+    @include('partials.page-header', [
+    'title' => 'Transaksi Barang Keluar',
+    'icon' => 'arrow-up',
+    'action' => '<a href="' . route('barang-keluar.create') . '" class="btn btn-primary">
+        <i class="fas fa-plus"></i> Tambah Barang Keluar
+    </a>'
+    ])
+
+    {{-- FILTER --}}
     <div class="card mb-3">
         <div class="card-body">
-            <form method="GET" action="{{ route('barang-keluar.index') }}" class="form-inline">
-                <div class="form-group mr-2">
-                    <label class="mr-1">Dari</label>
+            <form method="GET" action="{{ route('barang-keluar.index') }}" class="form-row">
+                <div class="col-md-3 mb-2">
+                    <label class="mb-0 small">Dari Tanggal</label>
                     <input type="date" name="tanggal_awal" class="form-control" value="{{ request('tanggal_awal') }}">
                 </div>
-                <div class="form-group mr-2">
-                    <label class="mr-1">Sampai</label>
+                <div class="col-md-3 mb-2">
+                    <label class="mb-0 small">Sampai Tanggal</label>
                     <input type="date" name="tanggal_akhir" class="form-control" value="{{ request('tanggal_akhir') }}">
                 </div>
-                <div class="form-group mr-2">
+                <div class="col-md-3 mb-2">
+                    <label class="mb-0 small">Barang</label>
                     <select name="item_id" class="form-control">
                         <option value="">-- Semua Barang --</option>
                         @foreach($barang as $b)
@@ -32,54 +41,86 @@
                         @endforeach
                     </select>
                 </div>
-                <button class="btn btn-secondary mr-2">Filter</button>
-                <a href="{{ route('barang-keluar.index') }}" class="btn btn-light">Reset</a>
+                <div class="col-md-3 mb-2 d-flex align-items-end">
+                    <button class="btn btn-secondary mr-2">
+                        <i class="fas fa-search"></i> Filter
+                    </button>
+                    <a href="{{ route('barang-keluar.index') }}" class="btn btn-light">
+                        <i class="fas fa-undo"></i> Reset
+                    </a>
+                </div>
             </form>
         </div>
     </div>
 
-    <a href="{{ route('barang-keluar.create') }}" class="btn btn-primary mb-3">+ Tambah Barang Keluar</a>
+    {{-- TABEL --}}
+    <div class="card">
+        <div class="card-body p-0 table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="thead-light">
+                    <tr>
+                        <th width="50" class="text-center">No</th>
+                        <th>Tanggal</th>
+                        <th>Kode Barang</th>
+                        <th>Nama Barang</th>
+                        <th>Kategori</th>
+                        <th class="text-right">Jumlah</th>
+                        <th>Tujuan</th>
+                        <th width="200" class="text-center">Aksi</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse($data as $i => $d)
+                    <tr>
+                        <td class="text-center">{{ $data->firstItem() + $i }}</td>
+                        <td>
+                            <i class="far fa-calendar-alt text-muted"></i>
+                            {{ \Carbon\Carbon::parse($d->tanggal_keluar)->format('d-m-Y') }}
+                        </td>
+                        <td>
+                            <span class="badge badge-secondary">
+                                {{ $d->item->kode_barang ?? '-' }}
+                            </span>
+                        </td>
+                        <td><strong>{{ $d->item->nama_barang ?? '-' }}</strong></td>
+                        <td>{{ $d->item->category->nama_kategori ?? '-' }}</td>
+                        <td class="text-right">
+                            <span class="badge badge-danger">
+                                −{{ $d->jumlah }} {{ $d->item->satuan ?? '' }}
+                            </span>
+                        </td>
+                        <td>{{ $d->tujuan ?? '-' }}</td>
+                        <td class="text-center">
+                            <a href="{{ route('barang-keluar.show', $d->id) }}" class="btn btn-sm btn-info"
+                                title="Detail">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                            <a href="{{ route('barang-keluar.edit', $d->id) }}" class="btn btn-sm btn-warning"
+                                title="Edit">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                            <button type="button" class="btn btn-sm btn-danger" data-toggle="modal"
+                                data-target="#confirmDeleteModal"
+                                data-action="{{ route('barang-keluar.destroy', $d->id) }}"
+                                data-message="Hapus transaksi ini? Stok barang akan dikembalikan {{ $d->jumlah }} {{ $d->item->satuan ?? '' }}."
+                                title="Hapus">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                    @empty
+                    @include('partials.empty-state', [
+                    'colspan' => 8,
+                    'message' => 'Belum ada transaksi barang keluar.'
+                    ])
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+    </div>
 
-    <table class="table table-bordered table-striped">
-        <thead>
-            <tr>
-                <th>No</th>
-                <th>Tanggal</th>
-                <th>Kode Barang</th>
-                <th>Nama Barang</th>
-                <th>Jumlah</th>
-                <th>Tujuan</th>
-                <th>Aksi</th>
-            </tr>
-        </thead>
-        <tbody>
-            @forelse($data as $i => $d)
-            <tr>
-                <td>{{ $data->firstItem() + $i }}</td>
-                <td>{{ \Carbon\Carbon::parse($d->tanggal_keluar)->format('d-m-Y') }}</td>
-                <td>{{ $d->item->kode_barang ?? '-' }}</td>
-                <td>{{ $d->item->nama_barang ?? '-' }}</td>
-                <td>{{ $d->jumlah }} {{ $d->item->satuan ?? '' }}</td>
-                <td>{{ $d->tujuan ?? '-' }}</td>
-                <td>
-                    <a href="{{ route('barang-keluar.show', $d->id) }}" class="btn btn-info btn-sm">Detail</a>
-                    <a href="{{ route('barang-keluar.edit', $d->id) }}" class="btn btn-warning btn-sm">Edit</a>
-                    <form action="{{ route('barang-keluar.destroy', $d->id) }}" method="POST" class="d-inline"
-                        onsubmit="return confirm('Hapus transaksi ini? Stok akan dikembalikan.')">
-                        @csrf
-                        @method('DELETE')
-                        <button class="btn btn-danger btn-sm">Hapus</button>
-                    </form>
-                </td>
-            </tr>
-            @empty
-            <tr>
-                <td colspan="7" class="text-center">Belum ada transaksi.</td>
-            </tr>
-            @endforelse
-        </tbody>
-    </table>
-
+    {{-- PAGINATION --}}
     @include('partials.pagination-info', ['data' => $data])
+
 </div>
 @endsection
