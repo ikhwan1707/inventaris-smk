@@ -9,11 +9,16 @@
                 <button class="sidebar-toggle-btn me-2" id="sidebar-toggle" aria-label="Toggle Navigation">
                     <i class="bi bi-list"></i>
                 </button>
-
             </div>
 
             <!-- Mid navbar: search pill -->
-            
+            <div class="navbar-search-wrapper">
+                <input type="text" class="navbar-search-input" placeholder="Search anything in inventaris..."
+                    id="main-search">
+                <button class="navbar-search-btn" aria-label="Search">
+                    <i class="bi bi-search"></i>
+                </button>
+            </div>
 
             <!-- Right actions -->
             <div class="navbar-actions">

@@ -1,114 +1,252 @@
-@extends('layouts.app')
+@extends('layouts.apps')
 
 @section('content')
-<div class="container-fluid">
+
+{{-- ==========================================
+     START: Page Header + Breadcrumb
+     ========================================== --}}
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Add Outgoing Item</h1>
+        <p class="page-subtitle">Record a new outgoing transaction and update item stock</p>
+    </div>
 
     @include('partials.breadcrumb', ['items' => [
-    'Transaksi' => '#',
-    'Barang Keluar' => route('barang-keluar.index'),
-    'Tambah' => '',
+        'Transaction' => '#',
+        'Outgoing'    => route('barang-keluar.index'),
+        'Add'         => '',
     ]])
+</div>
+{{-- END: Page Header --}}
 
-    @include('partials.alert')
 
-    <div class="row justify-content-center">
-        <div class="col-md-10">
-            <div class="card">
-                <div class="card-header bg-primary text-white">
-                    <i class="fas fa-arrow-up"></i> Tambah Barang Keluar
+{{-- ==========================================
+     START: Alert
+     ========================================== --}}
+@if($errors->any())
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <i class="bi bi-exclamation-circle"></i>
+        <strong>Please fix the following errors:</strong>
+        <ul class="mb-0 mt-2">
+            @foreach($errors->all() as $error)
+                <li>{{ $error }}</li>
+            @endforeach
+        </ul>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+@endif
+{{-- END: Alert --}}
+
+
+{{-- ==========================================
+     START: Form Card
+     ========================================== --}}
+<div class="row g-4 mb-4 justify-content-center">
+    <div class="col-12 col-lg-8">
+        <div class="card border-light shadow-sm p-4">
+
+            <h5 class="card-title mb-4">
+                <i class="bi bi-box-arrow-up text-danger"></i> Outgoing Information
+            </h5>
+
+            <form action="{{ route('barang-keluar.store') }}" method="POST" id="barangKeluarForm">
+                @csrf
+
+                {{-- =====================
+                     Item
+                ====================== --}}
+                <div class="mb-3">
+                    <label for="item_id" class="form-label-custom">
+                        Item <span class="text-danger">*</span>
+                    </label>
+                    <select name="item_id"
+                            id="item_id"
+                            class="form-select-custom @error('item_id') is-invalid-custom @enderror"
+                            required
+                            autofocus>
+                        <option value="">-- Select Item --</option>
+                        @foreach($barang as $b)
+                            <option value="{{ $b->id }}" {{ old('item_id') == $b->id ? 'selected' : '' }}>
+                                {{ $b->kode_barang }} — {{ $b->nama_barang }}
+                                (Stock: {{ $b->jumlah }} {{ $b->satuan }})
+                            </option>
+                        @endforeach
+                    </select>
+                    @error('item_id')
+                        <div class="form-feedback-custom invalid-custom">
+                            <i class="bi bi-exclamation-circle-fill"></i> {{ $message }}
+                        </div>
+                    @enderror
                 </div>
-                <div class="card-body">
-                    <form action="{{ route('barang-keluar.store') }}" method="POST">
-                        @csrf
 
-                        {{-- =====================
-                        BARIS 1: Barang
-                        ====================== --}}
-                        <div class="form-group">
-                            <label>Barang <span class="text-danger">*</span></label>
-                            <select name="item_id" class="form-control @error('item_id') is-invalid @enderror" required
-                                autofocus>
-                                <option value="">-- Pilih Barang --</option>
-                                @foreach($barang as $b)
-                                <option value="{{ $b->id }}" {{ old('item_id')==$b->id ? 'selected' : '' }}>
-                                    {{ $b->kode_barang }} - {{ $b->nama_barang }}
-                                    (Stok: {{ $b->jumlah }} {{ $b->satuan }})
-                                </option>
-                                @endforeach
-                            </select>
-                            @error('item_id')
-                            <span class="invalid-feedback">{{ $message }}</span>
-                            @enderror
-                        </div>
-
-                        {{-- =====================
-                        BARIS 2: Tanggal & Jumlah
-                        ====================== --}}
-                        <div class="form-row">
-                            <div class="form-group col-md-6">
-                                <label>Tanggal Keluar <span class="text-danger">*</span></label>
-                                <input type="date" name="tanggal_keluar"
-                                    class="form-control @error('tanggal_keluar') is-invalid @enderror"
-                                    value="{{ old('tanggal_keluar', date('Y-m-d')) }}" required>
-                                @error('tanggal_keluar')
-                                <span class="invalid-feedback">{{ $message }}</span>
-                                @enderror
+                {{-- =====================
+                     Date & Quantity
+                ====================== --}}
+                <div class="row g-3 mb-3">
+                    <div class="col-12 col-md-6">
+                        <label for="tanggal_keluar" class="form-label-custom">
+                            Outgoing Date <span class="text-danger">*</span>
+                        </label>
+                        <input type="date"
+                               name="tanggal_keluar"
+                               id="tanggal_keluar"
+                               class="form-control-custom @error('tanggal_keluar') is-invalid-custom @enderror"
+                               value="{{ old('tanggal_keluar', date('Y-m-d')) }}"
+                               required>
+                        @error('tanggal_keluar')
+                            <div class="form-feedback-custom invalid-custom">
+                                <i class="bi bi-exclamation-circle-fill"></i> {{ $message }}
                             </div>
-                            <div class="form-group col-md-6">
-                                <label>Jumlah <span class="text-danger">*</span></label>
-                                <input type="number" name="jumlah"
-                                    class="form-control @error('jumlah') is-invalid @enderror"
-                                    value="{{ old('jumlah', 1) }}" min="1" required>
-                                @error('jumlah')
-                                <span class="invalid-feedback">{{ $message }}</span>
-                                @enderror
-                                <small class="form-text text-muted">
-                                    Jumlah tidak boleh melebihi stok barang tersedia.
-                                </small>
+                        @enderror
+                    </div>
+
+                    <div class="col-12 col-md-6">
+                        <label for="jumlah" class="form-label-custom">
+                            Quantity <span class="text-danger">*</span>
+                        </label>
+                        <input type="number"
+                               name="jumlah"
+                               id="jumlah"
+                               class="form-control-custom @error('jumlah') is-invalid-custom @enderror"
+                               value="{{ old('jumlah', 1) }}"
+                               min="1"
+                               required>
+                        @error('jumlah')
+                            <div class="form-feedback-custom invalid-custom">
+                                <i class="bi bi-exclamation-circle-fill"></i> {{ $message }}
                             </div>
-                        </div>
-
-                        {{-- =====================
-                        BARIS 3: Tujuan
-                        ====================== --}}
-                        <div class="form-group">
-                            <label>Tujuan</label>
-                            <input type="text" name="tujuan" class="form-control @error('tujuan') is-invalid @enderror"
-                                value="{{ old('tujuan') }}"
-                                placeholder="Contoh: Laboratorium RPL, Ruang Guru, Dipinjam Siswa">
-                            @error('tujuan')
-                            <span class="invalid-feedback">{{ $message }}</span>
-                            @enderror
-                        </div>
-
-                        {{-- =====================
-                        BARIS 4: Keterangan
-                        ====================== --}}
-                        <div class="form-group">
-                            <label>Keterangan</label>
-                            <textarea name="keterangan" rows="3"
-                                class="form-control @error('keterangan') is-invalid @enderror">{{ old('keterangan') }}</textarea>
-                            @error('keterangan')
-                            <span class="invalid-feedback">{{ $message }}</span>
-                            @enderror
-                        </div>
-
-                        {{-- =====================
-                        TOMBOL AKSI
-                        ====================== --}}
-                        <div class="d-flex justify-content-between">
-                            <a href="{{ route('barang-keluar.index') }}" class="btn btn-secondary">
-                                <i class="fas fa-arrow-left"></i> Kembali
-                            </a>
-                            <button type="submit" class="btn btn-primary">
-                                <i class="fas fa-save"></i> Simpan
-                            </button>
-                        </div>
-                    </form>
+                        @else
+                            <span class="text-muted" style="font-size: 12px;">
+                                Quantity cannot exceed the available item stock.
+                            </span>
+                        @enderror
+                    </div>
                 </div>
-            </div>
+
+                {{-- =====================
+                     Destination
+                ====================== --}}
+                <div class="mb-3">
+                    <label for="tujuan" class="form-label-custom">Destination</label>
+                    <input type="text"
+                           name="tujuan"
+                           id="tujuan"
+                           class="form-control-custom @error('tujuan') is-invalid-custom @enderror"
+                           value="{{ old('tujuan') }}"
+                           placeholder="e.g. RPL Laboratory, Teacher Room, Student Loan">
+                    @error('tujuan')
+                        <div class="form-feedback-custom invalid-custom">
+                            <i class="bi bi-exclamation-circle-fill"></i> {{ $message }}
+                        </div>
+                    @enderror
+                </div>
+
+                {{-- =====================
+                     Notes
+                ====================== --}}
+                <div class="mb-3">
+                    <label for="keterangan" class="form-label-custom">Notes</label>
+                    <textarea name="keterangan"
+                              id="keterangan"
+                              rows="3"
+                              class="form-control-custom @error('keterangan') is-invalid-custom @enderror"
+                              placeholder="Optional notes about this transaction...">{{ old('keterangan') }}</textarea>
+                    @error('keterangan')
+                        <div class="form-feedback-custom invalid-custom">
+                            <i class="bi bi-exclamation-circle-fill"></i> {{ $message }}
+                        </div>
+                    @enderror
+                </div>
+
+                <hr class="my-4">
+
+                {{-- Action Buttons --}}
+                <div class="d-flex justify-content-between align-items-center">
+                    <a href="{{ route('barang-keluar.index') }}" class="btn-table-action">
+                        <i class="bi bi-arrow-left"></i> Back
+                    </a>
+                    <button type="submit" class="btn-table-action btn-primary-action">
+                        <i class="bi bi-check-lg"></i> Save Outgoing
+                    </button>
+                </div>
+
+            </form>
         </div>
     </div>
 
+    {{-- Side Info Panel --}}
+    <div class="col-12 col-lg-4">
+        <div class="card border-light shadow-sm p-4 h-100">
+            <h5 class="card-title mb-4">
+                <i class="bi bi-info-circle text-primary"></i> Guidelines
+            </h5>
+
+            <div class="mb-3">
+                <div class="d-flex align-items-start">
+                    <div class="me-2" style="color:#ef4444;">
+                        <i class="bi bi-exclamation-circle-fill"></i>
+                    </div>
+                    <div>
+                        <div style="font-size: 13px; font-weight:600; color:#072F1F;">Stock will decrease</div>
+                        <div class="text-muted" style="font-size:12px;">
+                            Saving this transaction will <strong>reduce</strong> the item stock.
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <div class="d-flex align-items-start">
+                    <div class="me-2" style="color:#ef4444;">
+                        <i class="bi bi-exclamation-triangle-fill"></i>
+                    </div>
+                    <div>
+                        <div style="font-size: 13px; font-weight:600; color:#072F1F;">Stock validation</div>
+                        <div class="text-muted" style="font-size:12px;">
+                            Quantity cannot exceed available stock. The system will reject invalid input.
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <div class="d-flex align-items-start">
+                    <div class="me-2" style="color:#f59e0b;">
+                        <i class="bi bi-info-circle-fill"></i>
+                    </div>
+                    <div>
+                        <div style="font-size: 13px; font-weight:600; color:#072F1F;">Accurate destination</div>
+                        <div class="text-muted" style="font-size:12px;">
+                            Fill in the destination clearly for better tracking.
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <div class="d-flex align-items-start">
+                    <div class="me-2" style="color:#0ea5e9;">
+                        <i class="bi bi-arrow-repeat"></i>
+                    </div>
+                    <div>
+                        <div style="font-size: 13px; font-weight:600; color:#072F1F;">Loans vs. Outgoing</div>
+                        <div class="text-muted" style="font-size:12px;">
+                            For returnable items, use the <strong>Loans</strong> menu instead.
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-auto pt-3 border-top">
+                <a href="{{ route('barang-keluar.index') }}"
+                   class="text-decoration-none d-block"
+                   style="font-size:13px;color:#072F1F;">
+                    <i class="bi bi-arrow-right"></i> View all outgoing
+                </a>
+            </div>
+        </div>
+    </div>
 </div>
+{{-- END: Form Card --}}
+
 @endsection

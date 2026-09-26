@@ -1,126 +1,297 @@
-@extends('layouts.app')
+@extends('layouts.apps')
 
 @section('content')
-<div class="container-fluid">
+
+{{-- ==========================================
+     START: Page Header + Breadcrumb
+     ========================================== --}}
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Item Data</h1>
+        <p class="page-subtitle">Manage inventory items of SMK Informatika Utama Depok</p>
+    </div>
 
     @include('partials.breadcrumb', ['items' => [
-    'Master Data' => '#',
-    'Barang' => route('barang.index'),
+        'Master Data' => '#',
+        'Item'        => route('barang.index'),
     ]])
+</div>
+{{-- END: Page Header --}}
 
-    @include('partials.alert')
 
-    @include('partials.page-header', [
-    'title' => 'Data Barang',
-    'icon' => 'box',
-    'action' => '<a href="' . route('barang.create') . '" class="btn btn-primary">
-        <i class="fas fa-plus"></i> Tambah Barang
-    </a>'
-    ])
+{{-- ==========================================
+     START: Alert
+     ========================================== --}}
+@if(session('success'))
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="bi bi-check-circle"></i> {{ session('success') }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+@endif
 
-    <div class="card mb-3">
-        <div class="card-body">
-            <form method="GET" action="{{ route('barang.index') }}" class="form-row">
-                <div class="col-md-3 mb-2">
-                    <input type="text" name="keyword" class="form-control" placeholder="Cari kode / nama barang..."
-                        value="{{ request('keyword') }}">
-                </div>
-                <div class="col-md-2 mb-2">
-                    <select name="category_id" class="form-control">
-                        <option value="">-- Semua Kategori --</option>
-                        @foreach(\App\Category::orderBy('nama_kategori')->get() as $k)
-                        <option value="{{ $k->id }}" {{ request('category_id')==$k->id ? 'selected' : '' }}>
+@if(session('error'))
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <i class="bi bi-exclamation-circle"></i> {{ session('error') }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+@endif
+{{-- END: Alert --}}
+
+
+{{-- ==========================================
+     START: Filter Card
+     ========================================== --}}
+<div class="card border-light shadow-sm p-3 mb-3">
+    <form method="GET" action="{{ route('barang.index') }}">
+        <div class="row g-2 align-items-end">
+
+            {{-- Keyword --}}
+            <div class="col-12 col-md-3">
+                <label class="form-label-custom" style="font-size:12px;">Search</label>
+                <input type="text"
+                       name="keyword"
+                       class="form-control-custom"
+                       placeholder="Search code or name..."
+                       value="{{ request('keyword') }}">
+            </div>
+
+            {{-- Category --}}
+            <div class="col-12 col-md-2">
+                <label class="form-label-custom" style="font-size:12px;">Category</label>
+                <select name="category_id" class="form-select-custom">
+                    <option value="">-- All --</option>
+                    @foreach(\App\Category::orderBy('nama_kategori')->get() as $k)
+                        <option value="{{ $k->id }}" {{ request('category_id') == $k->id ? 'selected' : '' }}>
                             {{ $k->nama_kategori }}
                         </option>
-                        @endforeach
-                    </select>
-                </div>
-                <div class="col-md-2 mb-2">
-                    <select name="location_id" class="form-control">
-                        <option value="">-- Semua Ruangan --</option>
-                        @foreach(\App\Location::orderBy('nama_ruangan')->get() as $r)
-                        <option value="{{ $r->id }}" {{ request('location_id')==$r->id ? 'selected' : '' }}>
+                    @endforeach
+                </select>
+            </div>
+
+            {{-- Location --}}
+            <div class="col-12 col-md-2">
+                <label class="form-label-custom" style="font-size:12px;">Location</label>
+                <select name="location_id" class="form-select-custom">
+                    <option value="">-- All --</option>
+                    @foreach(\App\Location::orderBy('nama_ruangan')->get() as $r)
+                        <option value="{{ $r->id }}" {{ request('location_id') == $r->id ? 'selected' : '' }}>
                             {{ $r->nama_ruangan }}
                         </option>
-                        @endforeach
-                    </select>
-                </div>
-                <div class="col-md-2 mb-2">
-                    <select name="condition_id" class="form-control">
-                        <option value="">-- Semua Kondisi --</option>
-                        @foreach(\App\Condition::orderBy('nama_kondisi')->get() as $c)
-                        <option value="{{ $c->id }}" {{ request('condition_id')==$c->id ? 'selected' : '' }}>
+                    @endforeach
+                </select>
+            </div>
+
+            {{-- Condition --}}
+            <div class="col-12 col-md-2">
+                <label class="form-label-custom" style="font-size:12px;">Condition</label>
+                <select name="condition_id" class="form-select-custom">
+                    <option value="">-- All --</option>
+                    @foreach(\App\Condition::orderBy('nama_kondisi')->get() as $c)
+                        <option value="{{ $c->id }}" {{ request('condition_id') == $c->id ? 'selected' : '' }}>
                             {{ $c->nama_kondisi }}
                         </option>
-                        @endforeach
-                    </select>
-                </div>
-                <div class="col-md-3 mb-2">
-                    <button class="btn btn-secondary"><i class="fas fa-search"></i> Filter</button>
-                    <a href="{{ route('barang.index') }}" class="btn btn-light">Reset</a>
-                </div>
-            </form>
+                    @endforeach
+                </select>
+            </div>
+
+            {{-- Buttons --}}
+            <div class="col-12 col-md-3">
+                <button type="submit" class="btn-table-action btn-primary-action">
+                    <i class="bi bi-search"></i> Filter
+                </button>
+                <a href="{{ route('barang.index') }}" class="btn-table-action">
+                    <i class="bi bi-arrow-clockwise"></i> Reset
+                </a>
+            </div>
+
+        </div>
+    </form>
+</div>
+{{-- END: Filter Card --}}
+
+
+{{-- ==========================================
+     START: Table Card
+     ========================================== --}}
+<div class="table-card-custom">
+
+    {{-- Header Controls --}}
+    <div class="table-header-control justify-content-end">
+        <div class="table-filter-group">
+            <a href="{{ route('barang.create') }}" class="btn-table-action btn-primary-action">
+                <i class="bi bi-plus-lg"></i> Add Item
+            </a>
         </div>
     </div>
 
-    <div class="card">
-        <div class="card-body p-0 table-responsive">
-            <table class="table table-hover mb-0">
-                <thead class="thead-light">
+    {{-- Table --}}
+    <div class="table-responsive">
+        <table class="table-custom">
+            <thead>
+                <tr>
+                    <th width="50">No</th>
+                    <th>Code</th>
+                    <th>Item Name</th>
+                    <th>Category</th>
+                    <th>Location</th>
+                    <th>Condition</th>
+                    <th class="text-end">Quantity</th>
+                    <th class="text-center">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @forelse($data as $i => $d)
+                    @php
+                        $namaKondisi = strtolower($d->condition->nama_kondisi ?? '');
+                        $badgeClass = 'failed';
+                        $statusIcon = 'bi-x-circle-fill';
+                        $statusLabel = $d->condition->nama_kondisi ?? '-';
+                        if (strpos($namaKondisi, 'baik') !== false) {
+                            $badgeClass = 'success';
+                            $statusIcon = 'bi-check-circle-fill';
+                        } elseif (strpos($namaKondisi, 'ringan') !== false) {
+                            $badgeClass = 'pending';
+                            $statusIcon = 'bi-exclamation-triangle-fill';
+                        }
+                    @endphp
                     <tr>
-                        <th width="50" class="text-center">No</th>
-                        <th>Kode</th>
-                        <th>Nama Barang</th>
-                        <th>Kategori</th>
-                        <th>Ruangan</th>
-                        <th>Kondisi</th>
-                        <th class="text-right">Jumlah</th>
-                        <th width="200" class="text-center">Aksi</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @forelse($data as $i => $d)
-                    <tr>
-                        <td class="text-center">{{ $data->firstItem() + $i }}</td>
-                        <td><span class="badge badge-secondary">{{ $d->kode_barang }}</span></td>
-                        <td><strong>{{ $d->nama_barang }}</strong></td>
+                        <td class="table-order-id">{{ $data->firstItem() + $i }}</td>
+                        <td>
+                            <span class="badge-table" style="background:#e5e7eb;color:#072F1F;">
+                                {{ $d->kode_barang }}
+                            </span>
+                        </td>
+                        <td>
+                            <div class="table-user-cell">
+                                <div class="table-user-avatar"
+                                     style="background:#6366f1;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;">
+                                    <i class="bi bi-box-seam"></i>
+                                </div>
+                                <div>
+                                    <div class="table-user-name">{{ $d->nama_barang }}</div>
+                                    <div class="table-user-sub">
+                                        ID: #ITM-{{ str_pad($d->id, 3, '0', STR_PAD_LEFT) }}
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
                         <td>{{ $d->category->nama_kategori ?? '-' }}</td>
                         <td>{{ $d->location->nama_ruangan ?? '-' }}</td>
                         <td>
-                            @if(stripos($d->condition->nama_kondisi ?? '', 'baik') !== false)
-                            <span class="badge badge-success">{{ $d->condition->nama_kondisi }}</span>
-                            @elseif(stripos($d->condition->nama_kondisi ?? '', 'ringan') !== false)
-                            <span class="badge badge-warning">{{ $d->condition->nama_kondisi }}</span>
-                            @else
-                            <span class="badge badge-danger">{{ $d->condition->nama_kondisi ?? '-' }}</span>
-                            @endif
+                            <span class="badge-table {{ $badgeClass }}">
+                                <i class="bi {{ $statusIcon }}"></i> {{ $statusLabel }}
+                            </span>
                         </td>
-                        <td class="text-right">
-                            <strong>{{ $d->jumlah }}</strong> {{ $d->satuan }}
+                        <td class="text-end">
+                            <strong>{{ $d->jumlah }}</strong>
+                            <span class="text-muted" style="font-size:12px;">{{ $d->satuan }}</span>
                         </td>
-                        <td class="text-center">
-                            <a href="{{ route('barang.show', $d->id) }}" class="btn btn-sm btn-info" title="Detail">
-                                <i class="fas fa-eye"></i>
-                            </a>
-                            <a href="{{ route('barang.edit', $d->id) }}" class="btn btn-sm btn-warning" title="Edit">
-                                <i class="fas fa-edit"></i>
-                            </a>
-                            <button type="button" class="btn btn-sm btn-danger" data-toggle="modal"
-                                data-target="#confirmDeleteModal" data-action="{{ route('barang.destroy', $d->id) }}"
-                                data-message="Hapus barang '{{ $d->nama_barang }}'?" title="Hapus">
-                                <i class="fas fa-trash"></i>
-                            </button>
+                        <td>
+                            <div class="d-flex justify-content-center gap-1">
+                                <a href="{{ route('barang.show', $d->id) }}"
+                                   class="table-btn-action"
+                                   title="View details">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                                <a href="{{ route('barang.edit', $d->id) }}"
+                                   class="table-btn-action"
+                                   title="Edit item">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                                <button type="button"
+                                        class="table-btn-action delete"
+                                        title="Delete item"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#confirmDeleteModal"
+                                        data-action="{{ route('barang.destroy', $d->id) }}"
+                                        data-message="Delete item '{{ $d->nama_barang }}'?">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </div>
                         </td>
                     </tr>
-                    @empty
-                    @include('partials.empty-state', ['colspan' => 8, 'message' => 'Belum ada data barang.'])
-                    @endforelse
-                </tbody>
-            </table>
-        </div>
+                @empty
+                    <tr>
+                        <td colspan="8" class="text-center py-5">
+                            <div class="text-muted-green">
+                                <i class="bi bi-inbox" style="font-size: 48px;"></i>
+                                <p class="mt-2 mb-0">No item data available.</p>
+                            </div>
+                        </td>
+                    </tr>
+                @endforelse
+            </tbody>
+        </table>
     </div>
 
-    @include('partials.pagination-info', ['data' => $data])
+    {{-- Footer / Pagination --}}
+    @if($data->count() > 0)
+        <div class="table-footer-control">
+            <span class="table-pagination-info">
+                Showing {{ $data->firstItem() }}–{{ $data->lastItem() }}
+                of {{ $data->total() }} items
+            </span>
+            <nav aria-label="Page navigation">
+                {{ $data->appends(request()->query())->links('pagination::bootstrap-4') }}
+            </nav>
+        </div>
+    @endif
 
 </div>
+{{-- END: Table Card --}}
+
+
+{{-- ==========================================
+     Modal Confirmation Delete
+     ========================================== --}}
+<div class="modal fade" id="confirmDeleteModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header" style="background:#B4F105;color:#B4F105;">
+                <h5 class="modal-title">
+                    <i class="bi bi-exclamation-triangle"></i> Delete Confirmation
+                </h5>
+                <button type="button" class="btn-close btn-close-white"
+                        data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p id="confirmDeleteMessage" class="mb-0">
+                    Are you sure you want to delete this data?
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-table-action" data-bs-dismiss="modal">
+                    <i class="bi bi-x-lg"></i> Cancel
+                </button>
+                <form id="confirmDeleteForm" method="POST" class="d-inline">
+                    @csrf
+                    @method('DELETE')
+                    <button type="submit" class="btn-table-action delete">
+                        <i class="bi bi-trash"></i> Yes, Delete
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
 @endsection
+
+
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const modal = document.getElementById('confirmDeleteModal');
+    if (modal) {
+        modal.addEventListener('show.bs.modal', function (event) {
+            const button  = event.relatedTarget;
+            const action  = button.getAttribute('data-action');
+            const message = button.getAttribute('data-message') || 'Are you sure you want to delete this data?';
+
+            document.getElementById('confirmDeleteForm').setAttribute('action', action);
+            document.getElementById('confirmDeleteMessage').textContent = message;
+        });
+    }
+});
+</script>
+@endpush

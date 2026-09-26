@@ -7,13 +7,13 @@
      ========================================== --}}
 <div class="page-header">
     <div>
-        <h1 class="page-title">Category Detail</h1>
-        <p class="page-subtitle">Detailed information of {{ $data->nama_kategori }}</p>
+        <h1 class="page-title">Location Detail</h1>
+        <p class="page-subtitle">Detailed information of {{ $data->nama_ruangan }}</p>
     </div>
 
     @include('partials.breadcrumb', ['items' => [
         'Master Data' => '#',
-        'Category'    => route('kategori.index'),
+        'Location'    => route('ruangan.index'),
         'Detail'      => '',
     ]])
 </div>
@@ -47,7 +47,7 @@
         <div class="card border-light shadow-sm p-4 h-100">
 
             <h5 class="card-title mb-4">
-                <i class="bi bi-info-circle text-primary"></i> Category Information
+                <i class="bi bi-info-circle text-primary"></i> Location Information
             </h5>
 
             {{-- Detail Table --}}
@@ -55,17 +55,17 @@
                 <table class="table-custom">
                     <tbody>
                         <tr>
-                            <th width="220" style="background:#f8f9fa;">Category Name</th>
+                            <th width="220" style="background:#f8f9fa;">Location Name</th>
                             <td>
                                 <div class="table-user-cell">
                                     <div class="table-user-avatar"
-                                         style="background:#B4F105;color:#072F1F;display:flex;align-items:center;justify-content:center;font-weight:700;">
-                                        <i class="bi bi-tags"></i>
+                                         style="background:#0ea5e9;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;">
+                                        <i class="bi bi-door-open"></i>
                                     </div>
                                     <div>
-                                        <div class="table-user-name">{{ $data->nama_kategori }}</div>
+                                        <div class="table-user-name">{{ $data->nama_ruangan }}</div>
                                         <div class="table-user-sub">
-                                            ID: #CAT-{{ str_pad($data->id, 3, '0', STR_PAD_LEFT) }}
+                                            ID: #LOC-{{ str_pad($data->id, 3, '0', STR_PAD_LEFT) }}
                                         </div>
                                     </div>
                                 </div>
@@ -102,21 +102,21 @@
 
             {{-- Action Buttons --}}
             <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
-                <a href="{{ route('kategori.index') }}" class="btn-table-action">
+                <a href="{{ route('ruangan.index') }}" class="btn-table-action">
                     <i class="bi bi-arrow-left"></i> Back
                 </a>
                 <div class="d-flex gap-2">
-                    <a href="{{ route('kategori.edit', $data->id) }}"
+                    <a href="{{ route('ruangan.edit', $data->id) }}"
                        class="btn-table-action btn-primary-action">
-                        <i class="bi bi-pencil"></i> Edit Category
+                        <i class="bi bi-pencil"></i> Edit Location
                     </a>
                     @if($data->items()->count() == 0)
                         <button type="button"
                                 class="btn-table-action delete"
                                 data-bs-toggle="modal"
                                 data-bs-target="#confirmDeleteModal"
-                                data-action="{{ route('kategori.destroy', $data->id) }}"
-                                data-message="Delete category '{{ $data->nama_kategori }}'?">
+                                data-action="{{ route('ruangan.destroy', $data->id) }}"
+                                data-message="Delete location '{{ $data->nama_ruangan }}'?">
                             <i class="bi bi-trash"></i> Delete
                         </button>
                     @endif
@@ -143,7 +143,7 @@
                             {{ $data->items()->count() }} Items
                         </div>
                         <div class="text-muted" style="font-size:12px;">
-                            Total items linked to this category.
+                            Total items stored in this location.
                         </div>
                     </div>
                 </div>
@@ -159,7 +159,7 @@
                             {{ $data->created_at->diffForHumans() }}
                         </div>
                         <div class="text-muted" style="font-size:12px;">
-                            Category was first created.
+                            Location was first created.
                         </div>
                     </div>
                 </div>
@@ -175,17 +175,17 @@
                             {{ $data->updated_at->diffForHumans() }}
                         </div>
                         <div class="text-muted" style="font-size:12px;">
-                            Last time this category was updated.
+                            Last time this location was updated.
                         </div>
                     </div>
                 </div>
             </div>
 
             <div class="mt-auto pt-3 border-top">
-                <a href="{{ route('barang.index', ['category_id' => $data->id]) }}"
+                <a href="{{ route('barang.index', ['location_id' => $data->id]) }}"
                    class="text-decoration-none"
                    style="font-size:13px;color:#072F1F;">
-                    <i class="bi bi-arrow-right"></i> View items in this category
+                    <i class="bi bi-arrow-right"></i> View items in this location
                 </a>
             </div>
         </div>

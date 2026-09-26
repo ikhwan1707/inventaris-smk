@@ -1,126 +1,267 @@
-@extends('layouts.app')
+@extends('layouts.apps')
 
 @section('content')
-<div class="container-fluid">
+
+{{-- ==========================================
+     START: Page Header + Breadcrumb
+     ========================================== --}}
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Incoming Items</h1>
+        <p class="page-subtitle">Manage incoming item transactions of SMK Informatika Utama Depok</p>
+    </div>
 
     @include('partials.breadcrumb', ['items' => [
-    'Transaksi' => '#',
-    'Barang Masuk' => route('barang-masuk.index'),
+        'Transaction' => '#',
+        'Incoming'    => route('barang-masuk.index'),
     ]])
+</div>
+{{-- END: Page Header --}}
 
-    @include('partials.alert')
 
-    @include('partials.page-header', [
-    'title' => 'Transaksi Barang Masuk',
-    'icon' => 'arrow-down',
-    'action' => '<a href="' . route('barang-masuk.create') . '" class="btn btn-primary">
-        <i class="fas fa-plus"></i> Tambah Barang Masuk
-    </a>'
-    ])
+{{-- ==========================================
+     START: Alert
+     ========================================== --}}
+@if(session('success'))
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="bi bi-check-circle"></i> {{ session('success') }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+@endif
 
-    {{-- FILTER --}}
-    <div class="card mb-3">
-        <div class="card-body">
-            <form method="GET" action="{{ route('barang-masuk.index') }}" class="form-row">
-                <div class="col-md-3 mb-2">
-                    <label class="mb-0 small">Dari Tanggal</label>
-                    <input type="date" name="tanggal_awal" class="form-control" value="{{ request('tanggal_awal') }}">
-                </div>
-                <div class="col-md-3 mb-2">
-                    <label class="mb-0 small">Sampai Tanggal</label>
-                    <input type="date" name="tanggal_akhir" class="form-control" value="{{ request('tanggal_akhir') }}">
-                </div>
-                <div class="col-md-3 mb-2">
-                    <label class="mb-0 small">Barang</label>
-                    <select name="item_id" class="form-control">
-                        <option value="">-- Semua Barang --</option>
-                        @foreach($barang as $b)
-                        <option value="{{ $b->id }}" {{ request('item_id')==$b->id ? 'selected' : '' }}>
+@if(session('error'))
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <i class="bi bi-exclamation-circle"></i> {{ session('error') }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+@endif
+{{-- END: Alert --}}
+
+
+{{-- ==========================================
+     START: Filter Card
+     ========================================== --}}
+<div class="card border-light shadow-sm p-3 mb-3">
+    <form method="GET" action="{{ route('barang-masuk.index') }}">
+        <div class="row g-2 align-items-end">
+
+            {{-- Start Date --}}
+            <div class="col-12 col-md-3">
+                <label class="form-label-custom" style="font-size:12px;">From Date</label>
+                <input type="date"
+                       name="tanggal_awal"
+                       class="form-control-custom"
+                       value="{{ request('tanggal_awal') }}">
+            </div>
+
+            {{-- End Date --}}
+            <div class="col-12 col-md-3">
+                <label class="form-label-custom" style="font-size:12px;">To Date</label>
+                <input type="date"
+                       name="tanggal_akhir"
+                       class="form-control-custom"
+                       value="{{ request('tanggal_akhir') }}">
+            </div>
+
+            {{-- Item --}}
+            <div class="col-12 col-md-3">
+                <label class="form-label-custom" style="font-size:12px;">Item</label>
+                <select name="item_id" class="form-select-custom">
+                    <option value="">-- All Items --</option>
+                    @foreach($barang as $b)
+                        <option value="{{ $b->id }}" {{ request('item_id') == $b->id ? 'selected' : '' }}>
                             {{ $b->nama_barang }}
                         </option>
-                        @endforeach
-                    </select>
-                </div>
-                <div class="col-md-3 mb-2 d-flex align-items-end">
-                    <button class="btn btn-secondary mr-2">
-                        <i class="fas fa-search"></i> Filter
-                    </button>
-                    <a href="{{ route('barang-masuk.index') }}" class="btn btn-light">
-                        <i class="fas fa-undo"></i> Reset
-                    </a>
-                </div>
-            </form>
+                    @endforeach
+                </select>
+            </div>
+
+            {{-- Buttons --}}
+            <div class="col-12 col-md-3">
+                <button type="submit" class="btn-table-action btn-primary-action">
+                    <i class="bi bi-search"></i> Filter
+                </button>
+                <a href="{{ route('barang-masuk.index') }}" class="btn-table-action">
+                    <i class="bi bi-arrow-clockwise"></i> Reset
+                </a>
+            </div>
+
+        </div>
+    </form>
+</div>
+{{-- END: Filter Card --}}
+
+
+{{-- ==========================================
+     START: Table Card
+     ========================================== --}}
+<div class="table-card-custom">
+
+    {{-- Header Controls --}}
+    <div class="table-header-control justify-content-end">
+        <div class="table-filter-group">
+            <a href="{{ route('barang-masuk.create') }}" class="btn-table-action btn-primary-action">
+                <i class="bi bi-plus-lg"></i> Add Incoming
+            </a>
         </div>
     </div>
 
-    {{-- TABEL --}}
-    <div class="card">
-        <div class="card-body p-0 table-responsive">
-            <table class="table table-hover mb-0">
-                <thead class="thead-light">
+    {{-- Table --}}
+    <div class="table-responsive">
+        <table class="table-custom">
+            <thead>
+                <tr>
+                    <th width="50">No</th>
+                    <th>Date</th>
+                    <th>Item Code</th>
+                    <th>Item Name</th>
+                    <th>Category</th>
+                    <th class="text-end">Quantity</th>
+                    <th>Source</th>
+                    <th class="text-center">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @forelse($data as $i => $d)
                     <tr>
-                        <th width="50" class="text-center">No</th>
-                        <th>Tanggal</th>
-                        <th>Kode Barang</th>
-                        <th>Nama Barang</th>
-                        <th>Kategori</th>
-                        <th class="text-right">Jumlah</th>
-                        <th>Sumber</th>
-                        <th width="200" class="text-center">Aksi</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @forelse($data as $i => $d)
-                    <tr>
-                        <td class="text-center">{{ $data->firstItem() + $i }}</td>
+                        <td class="table-order-id">{{ $data->firstItem() + $i }}</td>
                         <td>
-                            <i class="far fa-calendar-alt text-muted"></i>
-                            {{ \Carbon\Carbon::parse($d->tanggal_masuk)->format('d-m-Y') }}
+                            <i class="bi bi-calendar-event text-muted-green"></i>
+                            {{ \Carbon\Carbon::parse($d->tanggal_masuk)->format('d M Y') }}
                         </td>
                         <td>
-                            <span class="badge badge-secondary">
+                            <span class="badge-table" style="background:#e5e7eb;color:#072F1F;">
                                 {{ $d->item->kode_barang ?? '-' }}
                             </span>
                         </td>
-                        <td><strong>{{ $d->item->nama_barang ?? '-' }}</strong></td>
+                        <td>
+                            <div class="table-user-cell">
+                                <div class="table-user-avatar"
+                                     style="background:#B4F105;color:#072F1F;display:flex;align-items:center;justify-content:center;font-weight:700;">
+                                    <i class="bi bi-box-arrow-in-down"></i>
+                                </div>
+                                <div>
+                                    <div class="table-user-name">{{ $d->item->nama_barang ?? '-' }}</div>
+                                    <div class="table-user-sub">
+                                        ID: #IN-{{ str_pad($d->id, 5, '0', STR_PAD_LEFT) }}
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
                         <td>{{ $d->item->category->nama_kategori ?? '-' }}</td>
-                        <td class="text-right">
-                            <span class="badge badge-success">
-                                +{{ $d->jumlah }} {{ $d->item->satuan ?? '' }}
+                        <td class="text-end">
+                            <span class="badge-table success">
+                                <i class="bi bi-plus-lg"></i>
+                                {{ $d->jumlah }} {{ $d->item->satuan ?? '' }}
                             </span>
                         </td>
                         <td>{{ $d->sumber ?? '-' }}</td>
-                        <td class="text-center">
-                            <a href="{{ route('barang-masuk.show', $d->id) }}" class="btn btn-sm btn-info"
-                                title="Detail">
-                                <i class="fas fa-eye"></i>
-                            </a>
-                            <a href="{{ route('barang-masuk.edit', $d->id) }}" class="btn btn-sm btn-warning"
-                                title="Edit">
-                                <i class="fas fa-edit"></i>
-                            </a>
-                            <button type="button" class="btn btn-sm btn-danger" data-toggle="modal"
-                                data-target="#confirmDeleteModal"
-                                data-action="{{ route('barang-masuk.destroy', $d->id) }}"
-                                data-message="Hapus transaksi ini? Stok barang akan dikurangi {{ $d->jumlah }} {{ $d->item->satuan ?? '' }}."
-                                title="Hapus">
-                                <i class="fas fa-trash"></i>
-                            </button>
+                        <td>
+                            <div class="d-flex justify-content-center gap-1">
+                                <a href="{{ route('barang-masuk.show', $d->id) }}"
+                                   class="table-btn-action"
+                                   title="View details">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                                <a href="{{ route('barang-masuk.edit', $d->id) }}"
+                                   class="table-btn-action"
+                                   title="Edit transaction">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                                <button type="button"
+                                        class="table-btn-action delete"
+                                        title="Delete transaction"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#confirmDeleteModal"
+                                        data-action="{{ route('barang-masuk.destroy', $d->id) }}"
+                                        data-message="Delete this transaction? Stock will be reduced by {{ $d->jumlah }} {{ $d->item->satuan ?? '' }}.">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </div>
                         </td>
                     </tr>
-                    @empty
-                    @include('partials.empty-state', [
-                    'colspan' => 8,
-                    'message' => 'Belum ada transaksi barang masuk.'
-                    ])
-                    @endforelse
-                </tbody>
-            </table>
-        </div>
+                @empty
+                    <tr>
+                        <td colspan="8" class="text-center py-5">
+                            <div class="text-muted-green">
+                                <i class="bi bi-inbox" style="font-size: 48px;"></i>
+                                <p class="mt-2 mb-0">No incoming transaction data available.</p>
+                            </div>
+                        </td>
+                    </tr>
+                @endforelse
+            </tbody>
+        </table>
     </div>
 
-    {{-- PAGINATION --}}
-    @include('partials.pagination-info', ['data' => $data])
+    {{-- Footer / Pagination --}}
+    @if($data->count() > 0)
+        <div class="table-footer-control">
+            <span class="table-pagination-info">
+                Showing {{ $data->firstItem() }}–{{ $data->lastItem() }}
+                of {{ $data->total() }} transactions
+            </span>
+            <nav aria-label="Page navigation">
+                {{ $data->appends(request()->query())->links('pagination::bootstrap-4') }}
+            </nav>
+        </div>
+    @endif
 
 </div>
+{{-- END: Table Card --}}
+
+
+{{-- ==========================================
+     Modal Confirmation Delete
+     ========================================== --}}
+<div class="modal fade" id="confirmDeleteModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header" style="background:#B4F105;color:#B4F105;">
+                <h5 class="modal-title">
+                    <i class="bi bi-exclamation-triangle"></i> Delete Confirmation
+                </h5>
+                <button type="button" class="btn-close btn-close-white"
+                        data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p id="confirmDeleteMessage" class="mb-0">
+                    Are you sure you want to delete this data?
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-table-action" data-bs-dismiss="modal">
+                    <i class="bi bi-x-lg"></i> Cancel
+                </button>
+                <form id="confirmDeleteForm" method="POST" class="d-inline">
+                    @csrf
+                    @method('DELETE')
+                    <button type="submit" class="btn-table-action delete">
+                        <i class="bi bi-trash"></i> Yes, Delete
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
 @endsection
+
+
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const modal = document.getElementById('confirmDeleteModal');
+    if (modal) {
+        modal.addEventListener('show.bs.modal', function (event) {
+            const button  = event.relatedTarget;
+            const action  = button.getAttribute('data-action');
+            const message = button.getAttribute('data-message') || 'Are you sure you want to delete this data?';
+
+            document.getElementById('confirmDeleteForm').setAttribute('action', action);
+            document.getElementById('confirmDeleteMessage').textContent = message;
+        });
+    }
+});
+</script>
+@endpush

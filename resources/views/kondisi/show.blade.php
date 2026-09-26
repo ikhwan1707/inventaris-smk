@@ -7,13 +7,13 @@
      ========================================== --}}
 <div class="page-header">
     <div>
-        <h1 class="page-title">Category Detail</h1>
-        <p class="page-subtitle">Detailed information of {{ $data->nama_kategori }}</p>
+        <h1 class="page-title">Condition Detail</h1>
+        <p class="page-subtitle">Detailed information of {{ $data->nama_kondisi }}</p>
     </div>
 
     @include('partials.breadcrumb', ['items' => [
         'Master Data' => '#',
-        'Category'    => route('kategori.index'),
+        'Condition'   => route('kondisi.index'),
         'Detail'      => '',
     ]])
 </div>
@@ -47,28 +47,56 @@
         <div class="card border-light shadow-sm p-4 h-100">
 
             <h5 class="card-title mb-4">
-                <i class="bi bi-info-circle text-primary"></i> Category Information
+                <i class="bi bi-info-circle text-primary"></i> Condition Information
             </h5>
+
+            @php
+                $nama = strtolower($data->nama_kondisi);
+                $badgeClass = 'pending';
+                $statusLabel = 'Other';
+                $statusIcon = 'bi-circle';
+                if (strpos($nama, 'baik') !== false) {
+                    $badgeClass = 'success';
+                    $statusLabel = 'Good';
+                    $statusIcon = 'bi-check-circle-fill';
+                } elseif (strpos($nama, 'ringan') !== false) {
+                    $badgeClass = 'pending';
+                    $statusLabel = 'Minor Damage';
+                    $statusIcon = 'bi-exclamation-triangle-fill';
+                } elseif (strpos($nama, 'berat') !== false || strpos($nama, 'rusak') !== false) {
+                    $badgeClass = 'failed';
+                    $statusLabel = 'Major Damage';
+                    $statusIcon = 'bi-x-circle-fill';
+                }
+            @endphp
 
             {{-- Detail Table --}}
             <div class="table-responsive">
                 <table class="table-custom">
                     <tbody>
                         <tr>
-                            <th width="220" style="background:#f8f9fa;">Category Name</th>
+                            <th width="220" style="background:#f8f9fa;">Condition Name</th>
                             <td>
                                 <div class="table-user-cell">
                                     <div class="table-user-avatar"
-                                         style="background:#B4F105;color:#072F1F;display:flex;align-items:center;justify-content:center;font-weight:700;">
-                                        <i class="bi bi-tags"></i>
+                                         style="background:#22c55e;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;">
+                                        <i class="bi bi-clipboard-check"></i>
                                     </div>
                                     <div>
-                                        <div class="table-user-name">{{ $data->nama_kategori }}</div>
+                                        <div class="table-user-name">{{ $data->nama_kondisi }}</div>
                                         <div class="table-user-sub">
-                                            ID: #CAT-{{ str_pad($data->id, 3, '0', STR_PAD_LEFT) }}
+                                            ID: #CON-{{ str_pad($data->id, 3, '0', STR_PAD_LEFT) }}
                                         </div>
                                     </div>
                                 </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th style="background:#f8f9fa;">Status Classification</th>
+                            <td>
+                                <span class="badge-table {{ $badgeClass }}">
+                                    <i class="bi {{ $statusIcon }}"></i> {{ $statusLabel }}
+                                </span>
                             </td>
                         </tr>
                         <tr>
@@ -102,21 +130,21 @@
 
             {{-- Action Buttons --}}
             <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
-                <a href="{{ route('kategori.index') }}" class="btn-table-action">
+                <a href="{{ route('kondisi.index') }}" class="btn-table-action">
                     <i class="bi bi-arrow-left"></i> Back
                 </a>
                 <div class="d-flex gap-2">
-                    <a href="{{ route('kategori.edit', $data->id) }}"
+                    <a href="{{ route('kondisi.edit', $data->id) }}"
                        class="btn-table-action btn-primary-action">
-                        <i class="bi bi-pencil"></i> Edit Category
+                        <i class="bi bi-pencil"></i> Edit Condition
                     </a>
                     @if($data->items()->count() == 0)
                         <button type="button"
                                 class="btn-table-action delete"
                                 data-bs-toggle="modal"
                                 data-bs-target="#confirmDeleteModal"
-                                data-action="{{ route('kategori.destroy', $data->id) }}"
-                                data-message="Delete category '{{ $data->nama_kategori }}'?">
+                                data-action="{{ route('kondisi.destroy', $data->id) }}"
+                                data-message="Delete condition '{{ $data->nama_kondisi }}'?">
                             <i class="bi bi-trash"></i> Delete
                         </button>
                     @endif
@@ -135,7 +163,7 @@
 
             <div class="mb-3">
                 <div class="d-flex align-items-start">
-                    <div class="me-2" style="color:#0ea5e9;">
+                    <div class="me-2" style="color:#22c55e;">
                         <i class="bi bi-box-seam-fill"></i>
                     </div>
                     <div>
@@ -143,7 +171,23 @@
                             {{ $data->items()->count() }} Items
                         </div>
                         <div class="text-muted" style="font-size:12px;">
-                            Total items linked to this category.
+                            Total items with this condition.
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <div class="d-flex align-items-start">
+                    <div class="me-2" style="color:#0ea5e9;">
+                        <i class="bi bi-tag-fill"></i>
+                    </div>
+                    <div>
+                        <div style="font-size: 13px; font-weight:600; color:#072F1F;">
+                            {{ $statusLabel }}
+                        </div>
+                        <div class="text-muted" style="font-size:12px;">
+                            Auto-classified based on the name.
                         </div>
                     </div>
                 </div>
@@ -159,7 +203,7 @@
                             {{ $data->created_at->diffForHumans() }}
                         </div>
                         <div class="text-muted" style="font-size:12px;">
-                            Category was first created.
+                            Condition was first created.
                         </div>
                     </div>
                 </div>
@@ -175,17 +219,17 @@
                             {{ $data->updated_at->diffForHumans() }}
                         </div>
                         <div class="text-muted" style="font-size:12px;">
-                            Last time this category was updated.
+                            Last time this condition was updated.
                         </div>
                     </div>
                 </div>
             </div>
 
             <div class="mt-auto pt-3 border-top">
-                <a href="{{ route('barang.index', ['category_id' => $data->id]) }}"
+                <a href="{{ route('barang.index', ['condition_id' => $data->id]) }}"
                    class="text-decoration-none"
                    style="font-size:13px;color:#072F1F;">
-                    <i class="bi bi-arrow-right"></i> View items in this category
+                    <i class="bi bi-arrow-right"></i> View items with this condition
                 </a>
             </div>
         </div>
@@ -200,7 +244,7 @@
 <div class="modal fade" id="confirmDeleteModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
-            <div class="modal-header" style="background:#072F1F;color:#B4F105;">
+            <div class="modal-header" style="background:#B4F105;color:#B4F105;">
                 <h5 class="modal-title">
                     <i class="bi bi-exclamation-triangle"></i> Delete Confirmation
                 </h5>

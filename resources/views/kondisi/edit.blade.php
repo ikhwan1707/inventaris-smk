@@ -7,14 +7,14 @@
      ========================================== --}}
 <div class="page-header">
     <div>
-        <h1 class="page-title">Add Condition</h1>
-        <p class="page-subtitle">Create a new item condition for inventory</p>
+        <h1 class="page-title">Edit Condition</h1>
+        <p class="page-subtitle">Update the selected condition information</p>
     </div>
 
     @include('partials.breadcrumb', ['items' => [
         'Master Data' => '#',
         'Condition'   => route('kondisi.index'),
-        'Add'         => '',
+        'Edit'        => '',
     ]])
 </div>
 {{-- END: Page Header --}}
@@ -46,11 +46,12 @@
         <div class="card border-light shadow-sm p-4">
 
             <h5 class="card-title mb-4">
-                <i class="bi bi-clipboard-check text-success"></i> Condition Information
+                <i class="bi bi-pencil-square text-warning"></i> Condition Information
             </h5>
 
-            <form action="{{ route('kondisi.store') }}" method="POST" id="kondisiForm">
+            <form action="{{ route('kondisi.update', $data->id) }}" method="POST" id="kondisiForm">
                 @csrf
+                @method('PUT')
 
                 {{-- Condition Name --}}
                 <div class="mb-3">
@@ -61,7 +62,7 @@
                            name="nama_kondisi"
                            id="nama_kondisi"
                            class="form-control-custom @error('nama_kondisi') is-invalid-custom @enderror"
-                           value="{{ old('nama_kondisi') }}"
+                           value="{{ old('nama_kondisi', $data->nama_kondisi) }}"
                            placeholder="e.g. Good, Minor Damage, Major Damage"
                            required
                            autofocus>
@@ -71,10 +72,29 @@
                         </div>
                     @else
                         <span class="text-muted" style="font-size: 12px;">
-                            Use a clear condition name, e.g. <strong>Good</strong>,
-                            <strong>Minor Damage</strong>, or <strong>Major Damage</strong>.
+                            Update the condition name with a clear label,
+                            e.g. <strong>Good</strong>, <strong>Minor Damage</strong>,
+                            or <strong>Major Damage</strong>.
                         </span>
                     @enderror
+                </div>
+
+                {{-- Metadata Info --}}
+                <div class="mb-3">
+                    <div class="d-flex gap-3 flex-wrap" style="font-size: 12px;">
+                        <div class="text-muted">
+                            <i class="bi bi-hash"></i> ID:
+                            <strong>#CON-{{ str_pad($data->id, 3, '0', STR_PAD_LEFT) }}</strong>
+                        </div>
+                        <div class="text-muted">
+                            <i class="bi bi-calendar-plus"></i> Created:
+                            <strong>{{ $data->created_at->translatedFormat('d M Y, H:i') }}</strong>
+                        </div>
+                        <div class="text-muted">
+                            <i class="bi bi-clock-history"></i> Updated:
+                            <strong>{{ $data->updated_at->translatedFormat('d M Y, H:i') }}</strong>
+                        </div>
+                    </div>
                 </div>
 
                 <hr class="my-4">
@@ -85,7 +105,7 @@
                         <i class="bi bi-arrow-left"></i> Back
                     </a>
                     <button type="submit" class="btn-table-action btn-primary-action">
-                        <i class="bi bi-check-lg"></i> Save Condition
+                        <i class="bi bi-check-lg"></i> Update Condition
                     </button>
                 </div>
 
