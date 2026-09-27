@@ -32,6 +32,8 @@ Route::middleware('auth')->group(function () {
     Route::resource('peminjaman', 'PeminjamanController');
     Route::resource('pengembalian', 'PengembalianController');
 
+    Route::get('search', 'SearchController@index')->name('search');
+
     Route::prefix('laporan')->name('laporan.')->group(function () {
 
         // Laporan Inventaris

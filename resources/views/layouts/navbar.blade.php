@@ -12,13 +12,19 @@
             </div>
 
             <!-- Mid navbar: search pill -->
-            <div class="navbar-search-wrapper">
-                <input type="text" class="navbar-search-input" placeholder="Search anything in inventaris..."
-                    id="main-search">
-                <button class="navbar-search-btn" aria-label="Search">
-                    <i class="bi bi-search"></i>
-                </button>
-            </div>
+            <form action="{{ route('search') }}" method="GET" class="navbar-search-wrapper flex-grow-1 mx-3">
+    <input type="text"
+           name="q"
+           class="navbar-search-input"
+           placeholder="Search anything in inventaris..."
+           value="{{ request('q') }}"
+           autocomplete="off"
+           id="main-search">
+
+    <button type="submit" class="navbar-search-btn" aria-label="Search">
+        <i class="bi bi-search"></i>
+    </button>
+</form>
 
             <!-- Right actions -->
             <div class="navbar-actions">

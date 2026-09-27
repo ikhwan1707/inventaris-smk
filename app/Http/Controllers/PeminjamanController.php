@@ -24,6 +24,13 @@ class PeminjamanController extends Controller
             $query->where('item_id', $request->item_id);
         }
 
+        if ($request->filled('keyword')) {
+            $query->where(function ($q) use ($request) {
+                $q->where('kode_peminjaman', 'like', '%' . $request->keyword . '%')
+                ->orWhere('nama_peminjam', 'like', '%' . $request->keyword . '%');
+            });
+        }
+
         $data   = $query->paginate(20)->appends($request->query());
         $barang = Item::orderBy('nama_barang')->get();
 

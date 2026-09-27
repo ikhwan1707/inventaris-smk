@@ -9,12 +9,4 @@
                 href="" target="_blank">Elsa Rusantiana</a>• Distributed by <a
                 href="" target="_blank">ThemeWagon</a> </span>
     </div>
-    <div class="footer-right">
-        <ul class="footer-links">
-            <li><a href="#" class="footer-link">Overview</a></li>
-            <li><a href="#" class="footer-link">Statistics</a></li>
-            <li><a href="#" class="footer-link">Help & Documentation</a></li>
-            <li><a href="#" class="footer-link">Status <span class="status-dot"></span></a></li>
-        </ul>
-    </div>
 </footer>
