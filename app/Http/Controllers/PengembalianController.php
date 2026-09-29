@@ -155,22 +155,109 @@ class PengembalianController extends Controller
         ]);
 
         $data = LoanReturn::findOrFail($id);
+        $loan = $data->loan;
+
+        if (!$loan) {
+            return redirect()->back()
+                ->with('error', 'Loan data not found.')
+                ->withInput();
+        }
 
         DB::beginTransaction();
         try {
+            $masterItem = Item::findOrFail($loan->item_id);
+            $oldConditionId = $data->condition_id;
+            $newConditionId = $request->condition_id;
+            $qty = $loan->jumlah;
+
+            /* ==========================================
+           LANGKAH 1: Revert efek pengembalian lama
+           ========================================== */
+            if ($oldConditionId == $masterItem->condition_id) {
+                // Efek lama menambah ke item master → kurangi kembali
+                if ($masterItem->jumlah < $qty) {
+                    DB::rollBack();
+                    return redirect()->back()
+                        ->with('error', 'Cannot revert: master item stock is insufficient.')
+                        ->withInput();
+                }
+                $masterItem->decrement('jumlah', $qty);
+            } else {
+                // Efek lama menambah ke varian → kurangi varian
+                $oldVariant = Item::where('kode_barang', 'like', $masterItem->kode_barang . '-R%')
+                    ->where('condition_id', $oldConditionId)
+                    ->where('location_id', $masterItem->location_id)
+                    ->where('category_id', $masterItem->category_id)
+                    ->first();
+
+                if ($oldVariant) {
+                    if ($oldVariant->jumlah < $qty) {
+                        DB::rollBack();
+                        return redirect()->back()
+                            ->with('error', 'Cannot revert: variant item stock is insufficient.')
+                            ->withInput();
+                    }
+
+                    $oldVariant->decrement('jumlah', $qty);
+
+                    // Jika varian jadi kosong → hapus
+                    if ($oldVariant->jumlah <= 0) {
+                        $oldVariant->delete();
+                    }
+                }
+            }
+
+            /* ==========================================
+           LANGKAH 2: Terapkan efek kondisi baru
+           ========================================== */
+            if ($newConditionId == $masterItem->condition_id) {
+                // Kondisi baru = kondisi master → tambah ke master
+                $masterItem->increment('jumlah', $qty);
+            } else {
+                // Kondisi baru berbeda → cari/buat varian
+                $newVariant = Item::where('kode_barang', 'like', $masterItem->kode_barang . '-R%')
+                    ->where('condition_id', $newConditionId)
+                    ->where('location_id', $masterItem->location_id)
+                    ->where('category_id', $masterItem->category_id)
+                    ->first();
+
+                if ($newVariant) {
+                    $newVariant->increment('jumlah', $qty);
+                } else {
+                    // Generate kode unik varian baru
+                    $suffix = 1;
+                    do {
+                        $newCode = $masterItem->kode_barang . '-R' . str_pad($suffix, 2, '0', STR_PAD_LEFT);
+                        $suffix++;
+                    } while (Item::where('kode_barang', $newCode)->exists());
+
+                    Item::create([
+                        'kode_barang'     => $newCode,
+                        'nama_barang'     => $masterItem->nama_barang,
+                        'category_id'     => $masterItem->category_id,
+                        'location_id'     => $masterItem->location_id,
+                        'condition_id'    => $newConditionId,
+                        'jumlah'          => $qty,
+                        'satuan'          => $masterItem->satuan,
+                        'tahun_pengadaan' => $masterItem->tahun_pengadaan,
+                        'keterangan'      => 'Auto-generated from return ' . $loan->kode_peminjaman,
+                    ]);
+                }
+            }
+
+            /* ==========================================
+           LANGKAH 3: Update data pengembalian
+           ========================================== */
             $data->update([
                 'tanggal_kembali' => $request->tanggal_kembali,
-                'condition_id'    => $request->condition_id,
+                'condition_id'    => $newConditionId,
                 'keterangan'      => $request->keterangan,
             ]);
-
-            // Note: tidak auto-update kondisi master
-            // Perubahan kondisi hanya tercatat di riwayat pengembalian
 
             DB::commit();
 
             return redirect()->route('pengembalian.index')
-                ->with('success', 'Return updated successfully.');
+                ->with('success', 'Return updated successfully. Item stock and condition have been adjusted.');
         } catch (\Exception $e) {
             DB::rollBack();
             return redirect()->back()
@@ -184,32 +271,69 @@ class PengembalianController extends Controller
         $data = LoanReturn::findOrFail($id);
         $loan = $data->loan;
 
+        if (!$loan) {
+            return redirect()->route('pengembalian.index')
+                ->with('error', 'Loan data not found.');
+        }
+
         DB::beginTransaction();
         try {
-            // Kembalikan status peminjaman menjadi Dipinjam
-            $loan->update(['status' => 'Dipinjam']);
+            $masterItem = Item::findOrFail($loan->item_id);
+            $oldConditionId = $data->condition_id;
+            $qty = $loan->jumlah;
 
-            // Kurangi stok kembali
-            $item = Item::findOrFail($loan->item_id);
+            /* ==========================================
+           Revert efek pengembalian
+           ========================================== */
+            if ($oldConditionId == $masterItem->condition_id) {
+                // Efek lama menambah ke master → kurangi kembali
+                if ($masterItem->jumlah < $qty) {
+                    DB::rollBack();
+                    return redirect()->route('pengembalian.index')
+                        ->with('error', 'Cannot delete: master item stock is insufficient.');
+                }
+                $masterItem->decrement('jumlah', $qty);
+            } else {
+                // Efek lama menambah ke varian → kurangi/hapus varian
+                $variant = Item::where('kode_barang', 'like', $masterItem->kode_barang . '-R%')
+                    ->where('condition_id', $oldConditionId)
+                    ->where('location_id', $masterItem->location_id)
+                    ->where('category_id', $masterItem->category_id)
+                    ->first();
 
-            if ($item->jumlah < $loan->jumlah) {
-                DB::rollBack();
-                return redirect()->route('pengembalian.index')
-                    ->with('error', 'Stok tidak cukup untuk membatalkan pengembalian.');
+                if ($variant) {
+                    if ($variant->jumlah < $qty) {
+                        DB::rollBack();
+                        return redirect()->route('pengembalian.index')
+                            ->with('error', 'Cannot delete: variant item stock is insufficient.');
+                    }
+
+                    $variant->decrement('jumlah', $qty);
+
+                    if ($variant->jumlah <= 0) {
+                        $variant->delete();
+                    }
+                }
             }
 
-            $item->decrement('jumlah', $loan->jumlah);
+            /* ==========================================
+           Revert status loan ke "Dipinjam"
+           ========================================== */
+            $loan->update(['status' => 'Dipinjam']);
 
+            /* ==========================================
+           Hapus data pengembalian
+           ========================================== */
             $data->delete();
 
             DB::commit();
 
             return redirect()->route('pengembalian.index')
-                ->with('success', 'Pengembalian dibatalkan, status peminjaman kembali "Dipinjam".');
+                ->with('success', 'Return cancelled. Loan status reverted to Borrowed and item stock restored.');
         } catch (\Exception $e) {
             DB::rollBack();
             return redirect()->route('pengembalian.index')
-                ->with('error', 'Gagal menghapus pengembalian: ' . $e->getMessage());
+                ->with('error', 'Failed to delete: ' . $e->getMessage());
         }
     }
 }
