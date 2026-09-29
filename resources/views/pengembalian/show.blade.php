@@ -142,6 +142,11 @@
                                 <span class="badge-table {{ $badgeClass }}">
                                     <i class="bi {{ $statusIcon }}"></i> {{ $namaKondisi }}
                                 </span>
+                                <br>
+                                <small class="text-muted" style="font-size: 11px;">
+                                    Condition recorded at return. If different from original item,
+                                    the system creates a variant item to track stock separately.
+                                </small>
                             </td>
                         </tr>
                         <tr>

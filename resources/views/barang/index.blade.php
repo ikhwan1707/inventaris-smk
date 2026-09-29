@@ -161,14 +161,19 @@
                                 {{ $d->kode_barang }}
                             </span>
                         </td>
+                        
                         <td>
                             <div class="table-user-cell">
-                                <div class="table-user-avatar"
-                                     style="background:#6366f1;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;">
+                                <div class="table-user-avatar" style="background:#6366f1;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;;">
                                     <i class="bi bi-box-seam"></i>
                                 </div>
                                 <div>
-                                    <div class="table-user-name">{{ $d->nama_barang }}</div>
+                                    <div class="table-user-name">
+                                        {{ $d->nama_barang }}
+                                        @if(str_contains($d->kode_barang, '-R'))
+                                        <span class="badge-table pending" style="font-size:10px;">Variant</span>
+                                        @endif
+                                    </div>
                                     <div class="table-user-sub">
                                         ID: #ITM-{{ str_pad($d->id, 3, '0', STR_PAD_LEFT) }}
                                     </div>

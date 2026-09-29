@@ -68,7 +68,7 @@ class PengembalianController extends Controller
 
         DB::beginTransaction();
         try {
-            // Simpan pengembalian
+            // 1. Simpan pengembalian
             LoanReturn::create([
                 'loan_id'         => $loan->id,
                 'tanggal_kembali' => $request->tanggal_kembali,
@@ -76,26 +76,57 @@ class PengembalianController extends Controller
                 'keterangan'      => $request->keterangan,
             ]);
 
-            // Update status peminjaman
+            // 2. Update status peminjaman
             $loan->update(['status' => 'Kembali']);
 
-            // Tambahkan stok barang
+            // 3. Handle stok berdasarkan kondisi
             $item = Item::findOrFail($loan->item_id);
-            $item->increment('jumlah', $loan->jumlah);
 
-            // Update kondisi barang jika berubah
-            if ($item->condition_id != $request->condition_id) {
-                $item->update(['condition_id' => $request->condition_id]);
+            if ($item->condition_id == $request->condition_id) {
+                // ✅ Kondisi SAMA → cukup tambah stok item asli
+                $item->increment('jumlah', $loan->jumlah);
+            } else {
+                // ⚠️ Kondisi BERBEDA → cari/buat item dengan kondisi baru
+
+                $existingItem = Item::where('kode_barang', 'like', $item->kode_barang . '-R%')
+                    ->where('condition_id', $request->condition_id)
+                    ->where('location_id', $item->location_id)
+                    ->where('category_id', $item->category_id)
+                    ->first();
+
+                if ($existingItem) {
+                    // Sudah ada item dengan kondisi ini → tambah stoknya
+                    $existingItem->increment('jumlah', $loan->jumlah);
+                } else {
+                    // Buat item baru dengan kode unik
+                    $suffix = 1;
+                    do {
+                        $newCode = $item->kode_barang . '-R' . str_pad($suffix, 2, '0', STR_PAD_LEFT);
+                        $suffix++;
+                    } while (Item::where('kode_barang', $newCode)->exists());
+
+                    Item::create([
+                        'kode_barang'     => $newCode,
+                        'nama_barang'     => $item->nama_barang,
+                        'category_id'     => $item->category_id,
+                        'location_id'     => $item->location_id,
+                        'condition_id'    => $request->condition_id,
+                        'jumlah'          => $loan->jumlah,
+                        'satuan'          => $item->satuan,
+                        'tahun_pengadaan' => $item->tahun_pengadaan,
+                        'keterangan'      => 'Auto-generated dari return ' . $loan->kode_peminjaman,
+                    ]);
+                }
             }
 
             DB::commit();
 
             return redirect()->route('pengembalian.index')
-                ->with('success', 'Pengembalian berhasil dicatat dan stok telah diperbarui.');
+                ->with('success', 'Return recorded successfully. Condition differences are tracked separately.');
         } catch (\Exception $e) {
             DB::rollBack();
             return redirect()->back()
-                ->with('error', 'Gagal menyimpan pengembalian: ' . $e->getMessage())
+                ->with('error', 'Failed to save: ' . $e->getMessage())
                 ->withInput();
         }
     }
@@ -133,18 +164,17 @@ class PengembalianController extends Controller
                 'keterangan'      => $request->keterangan,
             ]);
 
-            // Update kondisi barang
-            $item = Item::findOrFail($data->loan->item_id);
-            $item->update(['condition_id' => $request->condition_id]);
+            // Note: tidak auto-update kondisi master
+            // Perubahan kondisi hanya tercatat di riwayat pengembalian
 
             DB::commit();
 
             return redirect()->route('pengembalian.index')
-                ->with('success', 'Data pengembalian berhasil diperbarui.');
+                ->with('success', 'Return updated successfully.');
         } catch (\Exception $e) {
             DB::rollBack();
             return redirect()->back()
-                ->with('error', 'Gagal memperbarui pengembalian: ' . $e->getMessage())
+                ->with('error', 'Failed to update: ' . $e->getMessage())
                 ->withInput();
         }
     }
